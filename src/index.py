@@ -119,17 +119,27 @@ def susp():
     res["latest"] = target.format(latest_id)
     return jsonify(res)
 
+# @app.route('/search',methods=['POST'])
+# def search():
+#     import re
+#     query=request.form['query']
+#     keywords = re.sub(r'[\W_]+', ' ', query).split()
+#     target.BM25(keywords)
+#     res={}
+#     ids, scores = target.BM25_get()
+#     res['bm25']=target.format(ids,scores)
+#     return jsonify(res)
+
 @app.route('/search',methods=['POST'])
 def search():
     import re
     query=request.form['query']
-    keywords = re.sub(r'[\W_]+', ' ', query).split()
-    target.BM25(keywords)
+    keywords = re.sub(r'[\W_]+', ' ', query)
+    target.LDA(keywords)
     res={}
-    ids, scores = target.BM25_get()
+    ids, scores = target.LDA_get()
     res['bm25']=target.format(ids,scores)
     return jsonify(res)
-
 
 
 if __name__ == "__main__":

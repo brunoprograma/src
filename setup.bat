@@ -1,1 +1,1 @@
-conda install -y scikit-learn matplotlib flask pandas
+conda install -y scikit-learn matplotlib flask pandas gensim nltk

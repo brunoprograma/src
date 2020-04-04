@@ -100,39 +100,6 @@ class MAR(object):
         self.body = self.body.fillna("")
         return
 
-    def create_lda(self,filename):
-        self.filename=filename
-        self.name=self.filename.split(".")[0]
-        self.flag=True
-        self.hasLabel=True
-        self.record={"x":[],"pos":[]}
-        self.body={}
-        self.est_num=[]
-        self.lastprob=0
-        self.offset=0.5
-        self.interval=3
-        self.last_pos=0
-        self.last_neg=0
-
-
-        try:
-            ## if model already exists, load it ##
-            return self.load()
-        except:
-            ## otherwise read from file ##
-            try:
-                self.loadfile()
-                self.preprocess()
-                import lda
-                from scipy.sparse import csr_matrix
-                lda1 = lda.LDA(n_topics=100, alpha=0.1, eta=0.01, n_iter=200)
-                self.csr_mat = csr_matrix(lda1.fit_transform(self.csr_mat))
-                self.save()
-            except:
-                ## cannot find file in workspace ##
-                self.flag=False
-        return self
-
     def export_feature(self):
         with open("../workspace/coded/feature_" + str(self.name) + ".csv", "wb") as csvfile:
             csvwriter = csv.writer(csvfile, delimiter=',')
@@ -495,6 +462,31 @@ class MAR(object):
     def BM25_get(self):
         ids = self.pool[np.argsort(self.bm[self.pool])[::-1][:self.step]]
         scores = self.bm[ids]
+
+        return ids, scores
+
+    ## LDA ##
+    def LDA(self, query):
+        from lda import get_corpus_for_docs, get_top_documents
+
+        base_docs = self.body['Document Title'] + ' ' + self.body['Abstract']
+
+        # put de query in the text processing
+        base_docs.at[0] = query
+
+        corpus, dictionary, query = get_corpus_for_docs(base_docs)
+
+        self.lda = get_top_documents(corpus, dictionary, query, num_topics=16, random_state=10)
+        self.lda_counter = 0
+
+    def LDA_get(self):
+        print(self.pool)
+        docs = self.lda[self.lda_counter:self.lda_counter+self.step]
+        ids = [id for id, score in docs]
+        scores = [float(score) for id, score in docs]
+        print(ids)
+        print(scores)
+        self.lda_counter += self.step
         return ids, scores
 
     ## Get certain ##
@@ -525,7 +517,7 @@ class MAR(object):
     def format(self,id,prob=[]):
         result=[]
         for ind,i in enumerate(id):
-            tmp = {key: str(self.body[key][i]).decode("utf-8",errors="ignore") for key in self.body}
+            tmp = {key: str(self.body[key][i]).encode("utf-8",errors="ignore").decode("utf-8",errors="ignore") for key in self.body}
             tmp["id"]=str(i)
             if prob!=[]:
                 tmp["prob"]=prob[ind]
