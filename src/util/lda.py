@@ -1,4 +1,5 @@
 #coding=utf-8
+import numpy as np
 import nltk
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
@@ -48,8 +49,8 @@ def get_corpus_for_docs(docs):
                 docs[idx].append(token)
 
     # text processing is done
-    query = docs[0]
-    docs = docs[1:]
+    query = docs[-1]
+    docs = docs[:-1]
 
     # Remove rare and common tokens.
     # Create a dictionary representation of the documents.
@@ -89,7 +90,6 @@ def get_top_documents(corpus, dictionary, query, num_topics, random_state):
     # query topics sorted by score
     query_topics = model.get_document_topics(dictionary.doc2bow(query))
     query_topics = list(sorted(query_topics, key=lambda x: x[1], reverse=True))
-    print(query_topics)
 
     # Get documents with highest probability for each topic. Source: https://stackoverflow.com/a/56814624
 
@@ -111,5 +111,12 @@ def get_top_documents(corpus, dictionary, query, num_topics, random_state):
     # probabiliades
     probs = topic_dict[topicID]
     sorted_probs = sorted(probs, key=lambda x: x[1], reverse=True)
-    print(sorted_probs)
-    return sorted_probs
+
+    # criamos uma lista de zeros
+    result = np.zeros(len(corpus))
+
+    # completamos com os dados do modelo
+    for id, proba in sorted_probs:
+        result[id] = proba
+
+    return result

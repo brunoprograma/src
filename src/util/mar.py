@@ -472,21 +472,16 @@ class MAR(object):
         base_docs = self.body['Document Title'] + ' ' + self.body['Abstract']
 
         # put de query in the text processing
-        base_docs.at[0] = query
+        base_docs = base_docs.append(pd.Series([query], index=[len(base_docs)]))
 
         corpus, dictionary, query = get_corpus_for_docs(base_docs)
 
         self.lda = get_top_documents(corpus, dictionary, query, num_topics=16, random_state=10)
-        self.lda_counter = 0
 
     def LDA_get(self):
-        print(self.pool)
-        docs = self.lda[self.lda_counter:self.lda_counter+self.step]
-        ids = [id for id, score in docs]
-        scores = [float(score) for id, score in docs]
-        print(ids)
-        print(scores)
-        self.lda_counter += self.step
+        ids = self.pool[np.argsort(self.lda[self.pool])[::-1][:self.step]]
+        scores = self.lda[ids]
+
         return ids, scores
 
     ## Get certain ##
