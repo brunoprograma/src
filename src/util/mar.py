@@ -476,7 +476,7 @@ class MAR(object):
 
         corpus, dictionary, query = get_corpus_for_docs(base_docs)
 
-        self.lda = get_top_documents(corpus, dictionary, query, num_topics=16, random_state=10)
+        self.lda = get_top_documents(corpus, dictionary, query, num_topics=34, random_state=10)
 
     def LDA_get(self):
         ids = self.pool[np.argsort(self.lda[self.pool])[::-1][:self.step]]

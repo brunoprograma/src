@@ -1,5 +1,7 @@
 #coding=utf-8
+from collections import OrderedDict
 import numpy as np
+import pandas as pd
 import nltk
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
@@ -88,35 +90,22 @@ def get_top_documents(corpus, dictionary, query, num_topics, random_state):
     )
 
     # query topics sorted by score
-    query_topics = model.get_document_topics(dictionary.doc2bow(query))
-    query_topics = list(sorted(query_topics, key=lambda x: x[1], reverse=True))
+    # query topics sorted by score
+    initial_query_topics = model.get_document_topics(dictionary.doc2bow(query))
+    query_topics = list(sorted(initial_query_topics, key=lambda x: x[1], reverse=True))
 
     # Get documents with highest probability for each topic. Source: https://stackoverflow.com/a/56814624
 
-    # Create a dictionary, with topic ID as the key, and the value is a list of tuples
-    # (docID, probability of this particular topic for the doc)
-
-    topic_dict = {i: [] for i in range(num_topics)}  # Your number of topics.
+    # matrix with the query topics as columns and docs as rows, value is the proba
+    topic_ids = [x[0] for x in query_topics]
+    topic_matrix = pd.DataFrame(columns=topic_ids)
 
     # Loop over all the documents to group the probability of each topic
-
     for docID in range(len(corpus)):
-        topic_vector = model[corpus[docID]]
-        for topicID, prob in topic_vector:
-            topic_dict[topicID].append((docID, prob))
+        topic_matrix.loc[len(topic_matrix)] = 0  # fill with zeros
+        topic_vector = OrderedDict(model[corpus[docID]])  # convert list of tuples to OrderedDict to go faster
+        for topicID in topic_ids:  # only the query topics are relevant
+            topic_matrix.at[docID, topicID] = topic_vector.get(topicID, 0)
 
-    # tópico mais forte
-    topicID, prob = query_topics[0]
-
-    # probabiliades
-    probs = topic_dict[topicID]
-    sorted_probs = sorted(probs, key=lambda x: x[1], reverse=True)
-
-    # criamos uma lista de zeros
-    result = np.zeros(len(corpus))
-
-    # completamos com os dados do modelo
-    for id, proba in sorted_probs:
-        result[id] = proba
-
-    return result
+    # sum probas
+    return np.array(topic_matrix.sum(axis=1))
