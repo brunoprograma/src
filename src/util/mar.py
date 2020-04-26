@@ -44,10 +44,12 @@ class MAR(object):
             try:
                 self.loadfile()
                 self.preprocess()
+                self.LDA_preprocess()
                 self.save()
             except:
                 ## cannot find file in workspace ##
                 self.flag=False
+
         self.enable_est=False
         return self
 
@@ -78,11 +80,12 @@ class MAR(object):
             self.body["fixed"].extend([0] * (len([c[ind0] for c in content[1:] if c[ind0]!="undetermined"])))
 
         self.preprocess()
+        self.LDA_preprocess()
         self.save()
 
 
     def loadfile(self):
-        self.body = pd.read_csv("../workspace/data/" + str(self.filename),encoding=None)
+        self.body = pd.read_csv("../workspace/data/" + str(self.filename), encoding='latin-1')
         fields = ["Document Title", "Abstract", "Year", "PDF Link"]
         columns = self.body.columns
         n = len(self.body)
@@ -164,6 +167,12 @@ class MAR(object):
         self.csr_mat=tfer.fit_transform(content)
         ########################################################
         return
+
+    def LDA_preprocess(self):
+        from lda import preprocessing_and_training
+
+        base_docs = self.body['Document Title'] + ' ' + self.body['Abstract']
+        self.LDA_model, self.corpus, self.dictionary, docs = preprocessing_and_training(base_docs, num_topics=93, random_state=10)
 
     ## save model ##
     def save(self):
@@ -467,16 +476,10 @@ class MAR(object):
 
     ## LDA ##
     def LDA(self, query):
-        from lda import get_corpus_for_docs, get_top_documents
+        from lda import preprocessing_and_training, LDA_ranking
 
-        base_docs = self.body['Document Title'] + ' ' + self.body['Abstract']
-
-        # put de query in the text processing
-        base_docs = base_docs.append(pd.Series([query], index=[len(base_docs)]))
-
-        corpus, dictionary, query = get_corpus_for_docs(base_docs)
-
-        self.lda = get_top_documents(corpus, dictionary, query, num_topics=34, random_state=10)
+        m, c, d, query = preprocessing_and_training([query], model=self.LDA_model, download=False)
+        self.lda = LDA_ranking(self.LDA_model, self.corpus, self.dictionary, query[0], top_n=1)
 
     def LDA_get(self):
         ids = self.pool[np.argsort(self.lda[self.pool])[::-1][:self.step]]

@@ -11,13 +11,11 @@ from gensim.models import LdaModel
 from gensim.models.phrases import Phrases, Phraser
 
 
-def get_corpus_for_docs(docs):
-    """
-    Faz o tratamento da base e retorna o corpus, dicionário e query tratada
-    """
+def preprocessing_and_training(docs, model=None, num_topics=None, random_state=None, download=True):
     # Download and import stopwords library
-    nltk.download('stopwords')
-    nltk.download('wordnet')
+    if download:
+        nltk.download('stopwords')
+        nltk.download('wordnet')
     stopwds = stopwords.words('english')
 
     # Split the documents into tokens.
@@ -50,10 +48,6 @@ def get_corpus_for_docs(docs):
                 # Token is a bigram, add to document.
                 docs[idx].append(token)
 
-    # text processing is done
-    query = docs[-1]
-    docs = docs[:-1]
-
     # Remove rare and common tokens.
     # Create a dictionary representation of the documents.
     dictionary = Dictionary(docs)
@@ -64,35 +58,32 @@ def get_corpus_for_docs(docs):
     # Bag-of-words representation of the documents.
     corpus = [dictionary.doc2bow(doc) for doc in docs]
 
-    return corpus, dictionary, query
+    if not model:
+        # Make a index to word dictionary.
+        temp = dictionary[0]  # This is only to "load" the dictionary.
+        id2word = dictionary.id2token
+
+        # Train LDA model.
+        model = LdaModel(
+            corpus=corpus,
+            id2word=id2word,
+            alpha='auto',
+            eta='auto',
+            gamma_threshold=0.01,  # se o resultado mudar menos de 1% as iterações são interrompidas
+            num_topics=num_topics,
+            random_state=random_state
+        )
+
+    return model, corpus, dictionary, docs
 
 
-def get_top_documents(corpus, dictionary, query, num_topics, random_state):
-    """
-    Retorna TOP documentos da query.
-
-    Recebe corpus, dicionário, query de busca, número de
-    tópicos e a semente do random.
-    """
-    # Make a index to word dictionary.
-    temp = dictionary[0]  # This is only to "load" the dictionary.
-    id2word = dictionary.id2token
-
-    # Train LDA model.
-    model = LdaModel(
-        corpus=corpus,
-        id2word=id2word,
-        alpha='auto',
-        eta='auto',
-        gamma_threshold=0.01,  # se o resultado mudar menos de 1% as iterações são interrompidas
-        num_topics=num_topics,
-        random_state=random_state
-    )
-
+def LDA_ranking(model, corpus, dictionary, query, top_n):
     # query topics sorted by score
     # query topics sorted by score
     initial_query_topics = model.get_document_topics(dictionary.doc2bow(query))
     query_topics = list(sorted(initial_query_topics, key=lambda x: x[1], reverse=True))
+    if top_n:
+        query_topics = query_topics[:top_n]
 
     # Get documents with highest probability for each topic. Source: https://stackoverflow.com/a/56814624
 
