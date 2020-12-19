@@ -21,8 +21,13 @@ class MAR(object):
         self.enough = 30
         self.kept=50
         self.atleast=100
-        self.lda_query = None
 
+        # lda atrrs
+        self.lda_docs = None
+        self.lda_query = None
+        self.lda_dictionary = None
+        self.lda_corpus = None
+        self.lda_dictionary = None
 
     def create(self,filename):
         self.filename=filename
@@ -80,12 +85,12 @@ class MAR(object):
             self.body["fixed"].extend([0] * (len([c[ind0] for c in content[1:] if c[ind0]!="undetermined"])))
 
         self.preprocess()
-        self.LDA_preprocess()
         self.save()
 
 
     def loadfile(self):
-        self.body = pd.read_csv("../workspace/data/" + str(self.filename), encoding='latin-1')
+        self.df = pd.read_csv("../workspace/data/" + str(self.filename), header=0, encoding='latin-1')
+        self.body = self.df
         fields = ["Document Title", "Abstract", "Year", "PDF Link"]
         columns = self.body.columns
         n = len(self.body)
@@ -167,14 +172,6 @@ class MAR(object):
         self.csr_mat=tfer.fit_transform(content)
         ########################################################
         return
-
-    def LDA_preprocess(self, query):
-        from lda import preprocessing_and_training
-
-        base_docs = self.body['Document Title'] + ' ' + self.body['Abstract']
-        base_docs = base_docs.append(pd.Series([query], index=[len(base_docs)]))
-
-        self.LDA_model, self.corpus, self.dictionary, docs, self.lda_query = preprocessing_and_training(base_docs, num_topics=140, random_state=826)
 
     ## save model ##
     def save(self):
@@ -477,10 +474,17 @@ class MAR(object):
         return ids, scores
 
     ## LDA ##
+
     def LDA(self, query):
-        from lda import preprocessing_and_training, LDA_ranking
-        self.LDA_preprocess(query=query)
-        self.lda = LDA_ranking(self.LDA_model, self.corpus, self.dictionary, self.lda_query)
+        from lda import LDA_preprocessing, LDA_ranking
+
+        base_docs = self.df['Document Title'] + ' ' + self.df['Abstract']
+        base_docs = base_docs.append(pd.Series([query], index=[len(base_docs)]))
+
+        corpus, dictionary, docs, query = LDA_preprocessing(base_docs)
+
+        self.lda = LDA_ranking(corpus, dictionary, query, 140, 826)
+
 
     def LDA_get(self):
         ids = self.pool[np.argsort(self.lda[self.pool])[::-1][:self.step]]

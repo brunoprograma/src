@@ -13,10 +13,9 @@ from gensim.models.wrappers.ldamallet import malletmodel2ldamodel
 from gensim.models.phrases import Phrases, Phraser
 
 
-def preprocessing_and_training(docs, model=None, num_topics=None, random_state=None, download=True):
+def LDA_preprocessing(docs):
     # Download and import stopwords library
-    if download:
-        nltk.download('stopwords')
+    nltk.download('stopwords')
     # Download and import stopwords library
     stopwds = stopwords.words('english')
 
@@ -50,26 +49,25 @@ def preprocessing_and_training(docs, model=None, num_topics=None, random_state=N
     # Bag-of-words representation of the documents.
     corpus = [dictionary.doc2bow(doc) for doc in docs]
 
-    if not model:
-        # Make a index to word dictionary.
-        temp = dictionary[0]  # This is only to "load" the dictionary.
-        id2word = dictionary.id2token
-
-        # Train LDA model.
-        path_to_mallet_binary = os.path.join(os.getcwd(), "..", "notebook", "mallet-2.0.8", "bin", "mallet")
-        mallet_model = LdaMallet(
-            path_to_mallet_binary,
-            corpus=corpus,
-            id2word=id2word,
-            num_topics=num_topics,
-            random_seed=random_state
-        )
-        model = malletmodel2ldamodel(mallet_model)
-
-    return model, corpus, dictionary, docs, query
+    return corpus, dictionary, docs, query
 
 
-def LDA_ranking(model, corpus, dictionary, query, N=50):
+def LDA_ranking(corpus, dictionary, query, num_topics, random_state, N=50):
+    # Make a index to word dictionary.
+    temp = dictionary[0]  # This is only to "load" the dictionary.
+    id2word = dictionary.id2token
+
+    # Train LDA model.
+    path_to_mallet_binary = os.path.join(os.getcwd(), "..", "notebook", "mallet-2.0.8", "bin", "mallet")
+    mallet_model = LdaMallet(
+        path_to_mallet_binary,
+        corpus=corpus,
+        id2word=id2word,
+        num_topics=num_topics,
+        random_seed=random_state
+    )
+    model = malletmodel2ldamodel(mallet_model)
+
     # QUERY ORIGINAL #######
 
     # query topics sorted by score
@@ -140,5 +138,9 @@ def LDA_ranking(model, corpus, dictionary, query, N=50):
         for topicID, proba in query_topics:  # only the query topics are relevant
             topic_matrix.at[docID, topicID] = proba * topic_vector.get(topicID, 0)
 
+    # soma de todas as colunas p/ cada documento
+    topic_probas = topic_matrix.sum(axis=1)
+    # ids = docs[np.argsort(topic_probas[docs])[::-1]]
+
     # sum probas
-    return np.array(topic_matrix.sum(axis=1))
+    return np.array(topic_probas)
