@@ -129,7 +129,7 @@ function search_send(what){
         type: "POST",
         url: "/search",
         async: true,
-        data: { query: what.query.value },
+        data: { query: what.query.value, cold_start: what.cold_start.value },
         success: search_receive
     });
 }

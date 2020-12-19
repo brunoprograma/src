@@ -21,6 +21,7 @@ class MAR(object):
         self.enough = 30
         self.kept=50
         self.atleast=100
+        self.lda_query = None
 
 
     def create(self,filename):
@@ -40,11 +41,10 @@ class MAR(object):
             ## if model already exists, load it ##
             self = self.load()
         except:
-            ## otherwise read from file ##
+            # otherwise read from file ##
             try:
                 self.loadfile()
                 self.preprocess()
-                self.LDA_preprocess()
                 self.save()
             except:
                 ## cannot find file in workspace ##
@@ -168,11 +168,13 @@ class MAR(object):
         ########################################################
         return
 
-    def LDA_preprocess(self):
+    def LDA_preprocess(self, query):
         from lda import preprocessing_and_training
 
         base_docs = self.body['Document Title'] + ' ' + self.body['Abstract']
-        self.LDA_model, self.corpus, self.dictionary, docs = preprocessing_and_training(base_docs, num_topics=93, random_state=10)
+        base_docs = base_docs.append(pd.Series([query], index=[len(base_docs)]))
+
+        self.LDA_model, self.corpus, self.dictionary, docs, self.lda_query = preprocessing_and_training(base_docs, num_topics=140, random_state=826)
 
     ## save model ##
     def save(self):
@@ -477,9 +479,8 @@ class MAR(object):
     ## LDA ##
     def LDA(self, query):
         from lda import preprocessing_and_training, LDA_ranking
-
-        m, c, d, query = preprocessing_and_training([query], model=self.LDA_model, download=False)
-        self.lda = LDA_ranking(self.LDA_model, self.corpus, self.dictionary, query[0], top_n=1)
+        self.LDA_preprocess(query=query)
+        self.lda = LDA_ranking(self.LDA_model, self.corpus, self.dictionary, self.lda_query)
 
     def LDA_get(self):
         ids = self.pool[np.argsort(self.lda[self.pool])[::-1][:self.step]]

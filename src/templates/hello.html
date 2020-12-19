@@ -25,6 +25,12 @@
         <br/>
         <form id="search" action="javascript:;" onsubmit="search_send(this)">
         <input type="text" name="query" id="query">
+
+        <input type="radio" id="BM25" name="cold_start" value="BM25" checked="checked">
+        <label for="BM25">BM25</label>
+        <input type="radio" id="LDA" name="cold_start" value="LDA">
+        <label for="LDA">LDA</label>
+
         <input type="submit" value="Search" style="float:right" >
         </form>
         <ol id="learn_result" style="overflow-y: scroll; height: 450px">
