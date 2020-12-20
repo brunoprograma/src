@@ -11,8 +11,8 @@
     <div class="learn">
         <font size="2">Target: </font><input type="file" id="myFile" onchange="handleFileSelect(this.files)"/>
         <br/>
-        <font size="2">Import: </font><input type="file" id="oldFile" onchange="handleOldSelect(this.files)" disabled/>
-        <br/>
+<!--        <font size="2">Import: </font><input type="file" id="oldFile" onchange="handleOldSelect(this.files)" disabled/>-->
+<!--        <br/>-->
         <select id="view_options" name="view" style="float:left" onchange="view_selection(this)">
             <option id="uncertain" value="uncertain" onclick="view_uncertain()" title="Uncertainty sampling or random sampling (if no relevant found so far), recommended when #relevant is low (say < 30% of estimated number)." selected>Uncertain</option>
             <option id="certain" value="certain" onclick="view_certain()" title="Certainty sampling, recommended when #relevant is higher (say > 30% of estimated number)." >Certain</option>
@@ -24,16 +24,14 @@
         <button onclick="auto_review()" id="auto" style="float:right" disabled> Auto Review </button>
         <br/>
         <form id="search" action="javascript:;" onsubmit="search_send(this)">
-        <input type="text" name="query" id="query">
-
-        <input type="radio" id="BM25" name="cold_start" value="BM25" checked="checked">
-        <label for="BM25">BM25</label>
-        <input type="radio" id="LDA" name="cold_start" value="LDA">
-        <label for="LDA">LDA</label>
-
-        <input type="submit" value="Search" style="float:right" >
+            <input type="text" name="query" id="query" style="float:left">
+            <input type="submit" value="Search" style="float:right" >
+            <input type="radio" id="BM25" name="cold_start" value="BM25" checked="checked">
+            <label for="BM25">BM25</label>
+            <input type="radio" id="LDA" name="cold_start" value="LDA">
+            <label for="LDA">LDA</label>
         </form>
-        <ol id="learn_result" style="overflow-y: scroll; height: 450px">
+        <ol id="learn_result" style="float:left; overflow-y: scroll; height: 450px">
         </ol>
     </div>
 

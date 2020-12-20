@@ -1,6 +1,6 @@
-What is FASTREAD?
+What is FASTREAD (or FAST2)?
 -----
-FASTREAD is a tool to support primary study selection in systematic literature review.
+FASTREAD (FAST2) is a tool to support primary study selection in systematic literature review.
 
 Latest Versions:
 
@@ -40,10 +40,10 @@ Setting up FASTREAD
 
 1. Setting up Python:
   + We use anaconda by continuum.io (see [Why?](https://www.continuum.io/why-anaconda))
-    - We won't need the entire distribution. [Download](http://conda.pydata.org/miniconda.html) a Python 2.7 (or Python 3) & install a minimal version of anaconda.
+    - We won't need the entire distribution. [Download](http://conda.pydata.org/miniconda.html) a Python 3.7+ & install a minimal version of anaconda.
   + Make sure you select add to PATH during install.
   + Next, run `setup.bat`. This will install all the dependencies needed to run the tool. Or:
-  + If the above does not work well. Remember you only need a Python 2.7 (now also support Python 3) and three packages listed in `requirements.txt` installed. So `pip install -r requirements.txt` will work.
+  + If the above does not work well. Remember you only need a Python 3.7 and three packages listed in `requirements.txt` installed. So `pip install -r requirements.txt` will work.
 
 2. Running script:
   + Navigate to *src* and run `index.py`.
@@ -51,7 +51,7 @@ Setting up FASTREAD
   ![](https://github.com/fastread/src/blob/master/tutorial/screenshots/run.png?raw=yes)
 
 3. The Interface:
-  + Fire up your browser and go to [`http://localhost:5000/hello/`](http://localhost:5000/hello/). You'll see a page like below:
+  + Fire up your browser and go to [`http://localhost:5000/`](http://localhost:5000/). You'll see a page like below:
   ![](https://github.com/fastread/src/blob/master/tutorial/screenshots/start.png?raw=yes)
     
 Use FASTREAD
@@ -64,8 +64,6 @@ Use FASTREAD
 2. Load the data:
   + Click **Target: Choose File** button to select your csv file in *workspace > data*. Wait a few seconds for the first time. Once the data is successfully loaded, you will see the following:
   ![](https://github.com/fastread/src/blob/master/tutorial/screenshots/load.png?raw=yes)
-
-2.5. [Better ways to start the review](#better-ways-to-start-the-review)
   
 3. Begin reviewing studies:
   - Check the box before **Enable Estimation**.

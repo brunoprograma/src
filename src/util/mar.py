@@ -9,6 +9,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import csv
 from collections import Counter
 from sklearn import svm
+from sklearn import linear_model
 import matplotlib.pyplot as plt
 import time
 import os
@@ -46,7 +47,7 @@ class MAR(object):
             ## if model already exists, load it ##
             self = self.load()
         except:
-            # otherwise read from file ##
+            ## otherwise read from file ##
             try:
                 self.loadfile()
                 self.preprocess()
@@ -54,10 +55,10 @@ class MAR(object):
             except:
                 ## cannot find file in workspace ##
                 self.flag=False
-
         self.enable_est=False
         return self
 
+    ### Depreciated
     ### Use previous knowledge, labeled only
     def create_old(self, filename):
         with open("../workspace/coded/" + str(filename), "r") as csvfile:
@@ -133,19 +134,13 @@ class MAR(object):
 
     def export(self):
         fields = ["Document Title", "Abstract", "Year", "PDF Link", "label", "code","time"]
-        with open("../workspace/coded/" + str(self.name) + ".csv", "w") as csvfile:
-            csvwriter = csv.writer(csvfile, delimiter=',')
-            csvwriter.writerow(fields)
-            ## sort before export
-            time_order = np.argsort(self.body["time"])[::-1]
-            yes = [c for c in time_order if self.body["code"][c]=="yes"]
-            no = [c for c in time_order if self.body["code"][c] == "no"]
-            und = [c for c in time_order if self.body["code"][c] == "undetermined"]
-            ##
-            for ind in yes+no+und:
-                csvwriter.writerow([self.body[field][ind] for field in fields])
-
-
+        body = self.body[fields]
+        body.sort_values(by=['time'], ascending=False)
+        yes = body.loc[body['code'] == 'yes']
+        no = body.loc[body['code'] == 'no']
+        und = body.loc[body['code'] == 'undetermined']
+        out = pd.concat([yes, no, und], ignore_index=True)
+        out.to_csv("../workspace/coded/" + str(self.name) + ".csv",columns=fields,index=False)
         return
 
     def preprocess(self):
@@ -187,10 +182,6 @@ class MAR(object):
 
 
     def estimate_curve(self, clf, reuse=False, num_neg=0):
-        from sklearn import linear_model
-        import random
-
-
 
         def prob_sample(probs):
             order = np.argsort(probs)[::-1]
@@ -203,7 +194,7 @@ class MAR(object):
                 if count >= 1:
                     # sample.append(np.random.choice(can,1)[0])
                     sample.append(can[0])
-                    count = 0
+                    count -= 1
                     can = []
             return sample
 
@@ -238,7 +229,7 @@ class MAR(object):
 
         pos_num_last = Counter(y0)[1]
 
-        lifes = 1
+        lifes = 3
         life = lifes
 
 
@@ -520,7 +511,7 @@ class MAR(object):
     def format(self,id,prob=[]):
         result=[]
         for ind,i in enumerate(id):
-            tmp = {key: str(self.body[key][i]).encode("utf-8",errors="ignore").decode("utf-8",errors="ignore") for key in self.body}
+            tmp = {key: str(self.body[key][i]) for key in self.body}
             tmp["id"]=str(i)
             if prob!=[]:
                 tmp["prob"]=prob[ind]
@@ -547,6 +538,9 @@ class MAR(object):
 
         plt.rcParams.update(paras)
 
+        if len(self.labeled)<=0:
+            return
+
         fig = plt.figure()
         order = np.argsort(np.array(self.body['time'])[self.labeled])
         seq = np.array(self.body['code'])[np.array(self.labeled)[order]]
@@ -558,24 +552,7 @@ class MAR(object):
             rec.append(counter)
         plt.plot(range(len(rec)), rec)
 
-        # plt.plot(self.record['x'], self.record["pos"])
 
-        ### estimation ####
-        # if self.enable_est:
-        #     if self.record["pos"][-1] > int(self.est_num/2) and self.record["pos"][-1] < self.est_num:
-        #         est = self.est[self.pool]
-        #         order = np.argsort(est)[::-1]
-        #         xx = [self.record["x"][-1]]
-        #         yy = [self.record["pos"][-1]]
-        #         for x in range(int(len(order) / self.step)):
-        #             delta = sum(est[order[x * self.step:(x + 1) * self.step]])
-        #             if delta >= 0.1:
-        #                 yy.append(yy[-1] + delta)
-        #                 xx.append(xx[-1] + self.step)
-        #             else:
-        #                 break
-        #         plt.plot(xx, yy, "-.")
-        ####################
         plt.ylabel("Relevant Found")
         plt.xlabel("Documents Reviewed")
         name=self.name+ "_" + str(int(time.time()))+".png"
