@@ -25,8 +25,9 @@ def load():
     global target
     file=request.form['file']
     target=target.create(file)
-    pos, neg, total = target.get_numbers()
-    return jsonify({"hasLabel": target.hasLabel, "flag": target.flag, "pos": pos, "done": pos+neg, "total": total})
+    pos, neg, total, recall, precision, f1 = target.get_numbers()
+    return jsonify({"hasLabel": target.hasLabel, "flag": target.flag, "pos": pos, "done": pos+neg, "total": total,
+                    "recall": recall, "precision": precision, "f1": f1})
 
 # Depreciated
 @app.route('/load_old',methods=['POST'])
@@ -69,29 +70,32 @@ def labeling():
     id = int(request.form['id'])
     label = request.form['label']
     target.code(id,label)
-    pos, neg, total = target.get_numbers()
+    pos, neg, total, recall, precision, f1 = target.get_numbers()
     target.save()
-    return jsonify({"flag": target.flag, "pos": pos, "done": pos + neg, "total": total})
+    return jsonify({"flag": target.flag, "pos": pos, "done": pos + neg, "total": total, "recall": recall,
+                    "precision": precision, "f1": f1})
 
 @app.route('/auto',methods=['POST'])
 def auto():
     for id in request.form.values():
         target.code(int(id),target.body["label"][int(id)])
-    pos, neg, total = target.get_numbers()
-    return jsonify({"flag": target.flag, "pos": pos, "done": pos + neg, "total": total})
+    pos, neg, total, recall, precision, f1 = target.get_numbers()
+    return jsonify({"flag": target.flag, "pos": pos, "done": pos + neg, "total": total,
+                    "recall": recall, "precision": precision, "f1": f1})
 
 @app.route('/restart',methods=['POST'])
 def restart():
     global target
     os.remove("./memory/"+target.name+".pickle")
     target = target.create(target.filename)
-    pos, neg, total = target.get_numbers()
-    return jsonify({"hasLabel": target.hasLabel, "flag": target.flag, "pos": pos, "done": pos + neg, "total": total})
+    pos, neg, total, recall, precision, f1 = target.get_numbers()
+    return jsonify({"hasLabel": target.hasLabel, "flag": target.flag, "pos": pos, "done": pos + neg, "total": total,
+                    "recall": recall, "precision": precision, "f1": f1})
 
 @app.route('/train',methods=['POST'])
 def train():
     global clf
-    pos,neg,total=target.get_numbers()
+    pos, neg, total, recall, precision, f1 = target.get_numbers()
     res={}
     if pos>0 or target.last_pos>0:
         uncertain_id, uncertain_prob, certain_id, certain_prob, clf = target.train(pne=True)

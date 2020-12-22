@@ -10,6 +10,7 @@ import csv
 from collections import Counter
 from sklearn import svm
 from sklearn import linear_model
+from sklearn.metrics import recall_score, precision_score, f1_score
 import matplotlib.pyplot as plt
 import time
 import os
@@ -130,7 +131,10 @@ class MAR(object):
             self.record['pos'].append(int(pos))
         self.pool = np.where(np.array(self.body['code']) == "undetermined")[0]
         self.labeled = list(set(range(len(self.body['code']))) - set(self.pool))
-        return pos, neg, total
+        recall = recall_score(y_true=self.body["label"], y_pred=self.body["code"].replace("undetermined", "no"), pos_label="yes", labels=["yes", "no"])
+        precision = precision_score(y_true=self.body["label"], y_pred=self.body["code"].replace("undetermined", "no"), pos_label="yes", labels=["yes", "no"])
+        f1 = f1_score(y_true=self.body["label"], y_pred=self.body["code"].replace("undetermined", "no"), pos_label="yes", labels=["yes", "no"])
+        return pos, neg, total, recall, precision, f1
 
     def export(self):
         fields = ["Document Title", "Abstract", "Year", "PDF Link", "label", "code","time"]

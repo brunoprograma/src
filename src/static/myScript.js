@@ -33,6 +33,7 @@ function handleOldSelect(files) {
 function load_receive(response) {
     if(response.flag){
         display_num_labeled(response);
+        display_recall_precision(response);
         $("button").removeAttr('disabled');
         $("#estimate").removeAttr('disabled');
         if (!response.hasLabel){
@@ -93,6 +94,10 @@ function plot_receive(response) {
 
 function display_num_labeled(response){    
     document.getElementById("num_labeled").innerText="Documents Coded: "+response.pos.toString()+"/"+response.done.toString()+" ("+response.total.toString()+")";
+}
+
+function display_recall_precision(response){
+    document.getElementById("recall_precision").innerHTML="Recall: "+response.recall.toString()+"<br/>Precision: "+response.precision.toString()+"<br/>F1 Score: "+response.f1.toString();
 }
 
 function display_num_estimated(number){
@@ -173,6 +178,7 @@ function labeling_receive(response){
     changed = true
     if(response.flag){
         display_num_labeled(response);
+        display_recall_precision(response);
     }  
     nextnode=current_node.nextSibling;
     prevnode=current_node.previousSibling;
@@ -208,6 +214,7 @@ function auto_review(){
 function auto_receive(response){
     if(response.flag){
         display_num_labeled(response);
+        display_recall_precision(response);
     }
     var olnode=document.getElementById("learn_result");
     while (olnode.firstChild) {

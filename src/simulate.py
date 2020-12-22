@@ -16,7 +16,7 @@ if __name__ == "__main__":
     if query:
         read.BM25(query.split())
     while True:
-        pos, neg, total = read.get_numbers()
+        pos, neg, total, recall, precision, f1 = read.get_numbers()
         try:
             print("%d, %d, %d" % (pos, pos + neg, read.est_num))
         except:
