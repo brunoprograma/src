@@ -2,6 +2,8 @@ from __future__ import print_function, division
 
 import os
 import sys
+import time
+import pandas as pd
 sys.path.append('./util/')
 
 from flask import Flask, url_for, render_template, request, jsonify, Response, json
@@ -132,11 +134,21 @@ def search():
 
     keywords = re.sub(r'[\W_]+', ' ', query).split()
 
-    # chosed cold start algorithm
-    getattr(target, cold_start)(keywords)
-    ids, scores = getattr(target, f'{cold_start}_get')()
+    # cold start == "query" passes query as a positive document to the model
+    if cold_start == 'query':
+        # transform and train model with query
+        query_line = [query, query, "", "", "yes", "yes", time.time(), 1]
+        target.body = target.body.append(pd.DataFrame([query_line], columns=list(target.body.columns)), ignore_index=True)
+        target.preprocess()
+        target.save()
+        res['bm25'] = []
+    else:
+        # chosed cold start algorithm
+        getattr(target, cold_start)(keywords)
+        ids, scores = getattr(target, f'{cold_start}_get')()
 
-    res['bm25'] = target.format(ids, scores)
+        res['bm25'] = target.format(ids, scores)
+
     return jsonify(res)
 
 if __name__ == "__main__":

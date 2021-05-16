@@ -53,7 +53,8 @@ class MAR(object):
                 self.loadfile()
                 self.preprocess()
                 self.save()
-            except:
+            except Exception as e:
+                print(e)
                 ## cannot find file in workspace ##
                 self.flag=False
         self.enable_est=False
