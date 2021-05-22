@@ -80,7 +80,10 @@ def labeling():
 @app.route('/auto',methods=['POST'])
 def auto():
     for id in request.form.values():
-        target.code(int(id),target.body["label"][int(id)])
+        if target.recall < 0.95:
+            target.code(int(id),target.body["label"][int(id)])
+        if target.recall > 0.9:
+            target.get_numbers()
     pos, neg, total, recall, precision, f1 = target.get_numbers()
     return jsonify({"flag": target.flag, "pos": pos, "done": pos + neg, "total": total,
                     "recall": recall, "precision": precision, "f1": f1})
@@ -137,8 +140,9 @@ def search():
     # cold start == "query" passes query as a positive document to the model
     if cold_start == 'query':
         # transform and train model with query
-        query_line = [query, query, "", "", "yes", "yes", time.time(), 1]
-        target.body = target.body.append(pd.DataFrame([query_line], columns=list(target.body.columns)), ignore_index=True)
+        # query_line = [query, query, "yes", "yes", time.time(), 1]  # true positive
+        query_line = [query, query, "no", "yes", time.time(), 0]  # false positive
+        target.body = target.body.append(pd.DataFrame([query_line], columns=['Document Title', 'Abstract', 'label', 'code', 'time', 'fixed']), ignore_index=True)
         target.preprocess()
         target.save()
         res['bm25'] = []

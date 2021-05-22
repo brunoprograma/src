@@ -31,6 +31,9 @@ class MAR(object):
         self.lda_corpus = None
         self.lda_dictionary = None
 
+        # numbers
+        self.pos, self.neg, self.total, self.recall, self.precision, self.f1 = 0, 0, 0, 0, 0, 0
+
     def create(self,filename):
         self.filename=filename
         self.name=self.filename.split(".")[0]
@@ -135,6 +138,7 @@ class MAR(object):
         recall = recall_score(y_true=self.body["label"], y_pred=self.body["code"].replace("undetermined", "no"), pos_label="yes", labels=["yes", "no"])
         precision = precision_score(y_true=self.body["label"], y_pred=self.body["code"].replace("undetermined", "no"), pos_label="yes", labels=["yes", "no"])
         f1 = f1_score(y_true=self.body["label"], y_pred=self.body["code"].replace("undetermined", "no"), pos_label="yes", labels=["yes", "no"])
+        self.pos, self.neg, self.total, self.recall, self.precision, self.f1 = pos, neg, total, recall, precision, f1
         return pos, neg, total, recall, precision, f1
 
     def export(self):
